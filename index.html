@@ -8,6 +8,39 @@
     <script src="script.js" defer></script>
 </head>
 <body>
-    
+    <button id="open-form">New book</button>
+    <div class="form-container">
+        <p>
+            <label>Name:</label>
+            <input type="text">
+        </p>
+        <p>
+            <label>Author:</label>
+            <input type="text">
+        </p><p>
+            <label>Pages:</label>
+            <input type="number">
+        </p>
+        <p>
+            <label>Has been read:</label>
+            <input type="checkbox">
+        </p>
+        <button type="button" id="add-book" disabled>add BOok!</button>
+    </div>
+    <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Pages</th>
+            <th>Read</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody id="book-info">
+          <tr>
+          </tr>
+        </tbody>
+       </table>
 </body>
 </html>
