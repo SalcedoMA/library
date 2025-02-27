@@ -11,28 +11,8 @@ openFormBtn.addEventListener('click', event => {
 
 //CREATE LIBRARY ARRAY
 const myLibrary = [
-    {
-        title: "The Hobbit",
-        author: "J.R.R. Tolkien",
-        pages: 293,
-        read: true,
-    }, {
-        title: "Harry Potter and the Filosofer's Stone",
-        author: "J.K. Rowling",
-        pages: 197,
-        read: true,
-    }, {
-        title: "Fifty Shades of Earl Grey",
-        author: "Tom Cruise",
-        pages: 1293,
-        read: false,
-    }, {
-        title: "The Bible",
-        author: "Jesus H. Christ",
-        pages: 1764,
-        read: true,
-    }
 ];
+
 
 
 
@@ -40,25 +20,40 @@ const myLibrary = [
 
 function drawTable() {
     for (i = 0; i < myLibrary.length; i++) {
+        const currentBook = myLibrary[i];
         const tableRow = document.createElement("tr");
         bookInformation.appendChild(tableRow);
-        for (const info in myLibrary[i]) {
-            const item = document.createElement('td');
-            tableRow.appendChild(item);
-            item.textContent = myLibrary[i][info];
-            if (myLibrary[i][info] === "") {
-                item.textContent = "unknown";
+        for (const info in currentBook) {
+            if (typeof currentBook[info] !== 'function') {
+                const item = document.createElement('td');
+                tableRow.appendChild(item);
+                item.textContent = currentBook[info];
+                if (currentBook[info] === "") {
+                    item.textContent = "unknown";
+                }
             }
         }
+        //CREATE READ TOGGLE BUTTONS
+        const cellOne = document.createElement('td')
+        tableRow.appendChild(cellOne);
+        const toggle = document.createElement('button');
+        toggle.className = "table-button";
+        toggle.addEventListener('click', event => {
+            currentBook.readToggle();
+        });
+        cellOne.appendChild(toggle);
+
         //CREATE DELETE BUTTON
+        const cellTwo = document.createElement('td');
+        tableRow.appendChild(cellTwo);
         const deleteBtn = document.createElement('button');
-        deleteBtn.className = "delete-btn";
+        deleteBtn.className = "table-btn";
         deleteBtn.value = i;
         deleteBtn.addEventListener('click', event => {
             deleteBook(deleteBtn.value);
             deleteNRedraw();
         })
-        tableRow.appendChild(deleteBtn);
+        cellTwo.appendChild(deleteBtn);
         
     }
 }
@@ -79,12 +74,14 @@ function Book(title, author, pages, read) {
     this.pages = pages;
     this.read = read;
   };
-
+    //READ TOGGLE FUNCTION
 Book.prototype.readToggle = function() {
     if (this.read === true) {
         this.read = false;
+        deleteNRedraw();
     } else {
         this.read = true;
+        deleteNRedraw();
     }
 }
   
@@ -122,3 +119,8 @@ document.querySelector('body').addEventListener('mouseover', event => {
         addBookBtn.disabled = true;
     }
 })
+
+addBookToLibrary("The Hobbit", "J.R.R. Tolkien", 293, true);
+addBookToLibrary("Harry Potter and the Filosofer's Stone", "J.K. Rowling", 197, true);
+addBookToLibrary("Fifty Shades of Earl Grey", "Tom Cruise", 564, false);
+addBookToLibrary("The Bible", "Jesus H. Christ", 1392, false);
