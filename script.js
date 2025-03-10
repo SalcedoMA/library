@@ -1,126 +1,157 @@
 //GET NECESSARY ELEMENTS FROM D.O.M.
-const addBookBtn = document.querySelector("#add-book");
-const bookInformation = document.querySelector("#book-info");
-const openFormBtn = document.querySelector("#open-form");
-const formContainer = document.querySelector(".form-container");
-const inputs = document.querySelectorAll("p>input");
+class DOMElements {
+    static bookTable = document.querySelector("#book-info");
+    static addBookButton = document.querySelector("#add-book");
+    static openFormButton = document.querySelector("#open-form");
+    static formContainer = document.querySelector(".form-container");
+    static inputs = document.querySelectorAll("p>input");
+}
 
-openFormBtn.addEventListener('click', event => {
-    formContainer.style.display = "flex";
-})
+class Book {
+    constructor(title, author, pages, read) {
+        this.title = title;
+        this.author = author;
+        this.pages = pages;
+        this.read = read;
+    }
 
-//CREATE LIBRARY ARRAY
-const myLibrary = [
-];
-
-
-
-
-//DRAW TABLE AND BOOK LIST, DELETE TABLE AND REDRAW IT
-
-function drawTable() {
-    for (i = 0; i < myLibrary.length; i++) {
-        const currentBook = myLibrary[i];
-        const tableRow = document.createElement("tr");
-        bookInformation.appendChild(tableRow);
-        for (const info in currentBook) {
-            if (typeof currentBook[info] !== 'function') {
-                const item = document.createElement('td');
-                tableRow.appendChild(item);
-                item.textContent = currentBook[info];
-                if (currentBook[info] === "") {
-                    item.textContent = "unknown";
-                }
-            }
+    readToggle() {
+        if (this.read === true) {
+            this.read = false;
+            console.log(this.read, this.title);
+        } else {
+            this.read = true;
+            console.log(this.read, this.title);
         }
-        //CREATE READ TOGGLE BUTTONS
-        const cellOne = document.createElement('td')
-        tableRow.appendChild(cellOne);
-        const toggle = document.createElement('button');
-        toggle.className = "table-button";
-        toggle.addEventListener('click', event => {
-            currentBook.readToggle();
+    }
+}
+
+class MyLibrary {
+    static books = []; // Static property to store all books
+
+    static addBook(title, author, pages, read) {
+        const newBook = new Book(title, author, pages, read);
+        MyLibrary.books.push(newBook);
+        console.log(`Added book: ${newBook.title}`);
+    }
+
+    static removeBook(title) {
+        MyLibrary.books = MyLibrary.books.filter(book => book.title !== title);
+        console.log(`Removed book: ${title}`);
+    }
+
+    static listBooks() {
+        console.log("Books in the library:");
+        MyLibrary.books.forEach(book => {
+            console.log(`- ${book.title} by ${book.author}`);
         });
-        cellOne.appendChild(toggle);
+    }
 
-        //CREATE DELETE BUTTON
-        const cellTwo = document.createElement('td');
-        tableRow.appendChild(cellTwo);
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = "table-btn";
-        deleteBtn.value = i;
-        deleteBtn.addEventListener('click', event => {
-            deleteBook(deleteBtn.value);
-            deleteNRedraw();
+}
+
+class NewBookForm {
+    static openForm = () => {
+        DOMElements.openFormButton.addEventListener('click', event => {
+            DOMElements.formContainer.style.display = "flex";
         })
-        cellTwo.appendChild(deleteBtn);
-        
     }
+
+    //GET INFO FROM INPUT FORM AND CREATE EVENT LISTENER
+
+    static addBook = () => {
+        DOMElements.addBookButton.addEventListener('click', event => {
+            const title = DOMElements.inputs[0].value;
+            const author = DOMElements.inputs[1].value;
+            const pages = DOMElements.inputs[2].value;
+            const read = DOMElements.inputs[3].checked;
+
+            MyLibrary.addBook(title, author, pages, read);
+            Display.render();
+            //CLEAR INPUTS AFTER ADDING
+            for (const input of DOMElements.inputs) {
+                input.value = '';
+                input.checked = false;
+            }
+            DOMElements.addBookButton.disabled = true;
+            });
+
+        document.querySelector('body').addEventListener('mouseover', event => {
+            DOMElements.addBookButton.disabled = false;
+            if (DOMElements.inputs[0].value === "") {
+                DOMElements.addBookButton.disabled = true;
+            }
+        })
+    }  
 }
 
-function deleteNRedraw() {
-    const allRows = document.querySelectorAll("tr");
-    for (i = 1; i < allRows.length; i++) {
-        allRows[i].remove();
+const Display = (function() {
+
+    const createButton = (buttonType, onClickHandler, data) => { //onClickHandler is just a custom funciton made by me (AI but shhh) to handle the function later
+        return function(tableRow) {
+            const tableCell = document.createElement('td');
+            tableRow.appendChild(tableCell);
+    
+            const button = document.createElement('button');
+            tableCell.appendChild(button);
+            button.className = "table-button";
+            button.textContent = buttonType;
+    
+            // Pass the `data` to the event handler
+            button.addEventListener('click', (event) => onClickHandler(event, data));
+        };
+    };
+    
+    // Create specific button instances using the factory function
+    const createToggleButton = (book) => {
+        return createButton("Toggle", (event, book) => {
+            book.readToggle(); 
+            event.target.parentElement.previousElementSibling.textContent = book.read;
+        }, book);
+    };
+    
+    const createDeleteButton = (index) => {
+        return createButton("Delete", (event, index) => {
+            MyLibrary.books.splice(index, 1); 
+            event.target.closest('tr').remove();
+            console.log(MyLibrary.books);
+        }, index);
+    };
+
+    const render = function() {
+        NewBookForm.openForm();
+        NewBookForm.addBook();
+        DOMElements.bookTable.innerHTML = "";
+        MyLibrary.books.forEach((book, index) => {
+            const tableRow = document.createElement("tr");
+            DOMElements.bookTable.appendChild(tableRow);
+            for (const info in book) {
+               // if (typeof book[info] !== 'function') {
+                    const infoCell = document.createElement('td');
+                    tableRow.appendChild(infoCell);
+                    infoCell.textContent = book[info];
+                    if (info === "") {
+                        infoCell.textContent = "unknown";
+                    }
+              //  }
+            }
+            createToggleButton(book)(tableRow);
+            createDeleteButton(index)(tableRow);
+        })
     }
-    drawTable();
-}
-deleteNRedraw();
-
-// BOOK CONSTRUCTOR FUNCTION
-function Book(title, author, pages, read) {
-    this.title = title;
-    this.author = author;
-    this.pages = pages;
-    this.read = read;
-  };
-    //READ TOGGLE FUNCTION
-Book.prototype.readToggle = function() {
-    if (this.read === true) {
-        this.read = false;
-        deleteNRedraw();
-    } else {
-        this.read = true;
-        deleteNRedraw();
-    }
-}
-  
-function addBookToLibrary(title, author,pages, read) {
-    myLibrary.push(new Book(title, author, pages, read));
-    deleteNRedraw();
-}
-
-//CREATE FUNCTION FOR DELETING BOOKS
-function deleteBook(index) {
-    myLibrary.splice(index, 1);
-}
+    return {render};
+})()
 
 
-//GET INFO FROM INPUT FORM AND CREATE EVENT LISTENER
-addBookBtn.addEventListener('click', event => {
-    const title = inputs[0].value;
-    const author = inputs[1].value;
-    const pages = inputs[2].value;
-    const read = inputs[3].checked;
 
-    addBookToLibrary(title, author, pages, read);
-    //CLEAR INPUTS AFTER ADDING
-    for (const input of inputs) {
-        input.value = '';
-        input.checked = false;
-    }
-    addBookBtn.disabled = true;
-});
 
-//DISABLE ADDBOOK BUTTON WHEN TITLE FIELD IS EMPTY
-document.querySelector('body').addEventListener('mouseover', event => {
-    addBookBtn.disabled = false;
-    if (inputs[0].value === "") {
-        addBookBtn.disabled = true;
-    }
-})
 
-addBookToLibrary("The Hobbit", "J.R.R. Tolkien", 293, true);
-addBookToLibrary("Harry Potter and the Filosofer's Stone", "J.K. Rowling", 197, true);
-addBookToLibrary("Fifty Shades of Earl Grey", "Tom Cruise", 564, false);
-addBookToLibrary("The Bible", "Jesus H. Christ", 1392, false);
+
+
+// Usage
+
+MyLibrary.addBook("The Hobbit", "J.R.R. Tolkien", 293, true);
+MyLibrary.addBook("1984", "George Orwell", 328, false);
+MyLibrary.listBooks();
+
+console.log(MyLibrary.books)
+Display.render();
